@@ -1,0 +1,32 @@
+version: '1.0'
+services:
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.2.0
+    volumes:
+      - ./config:/etc/influxdb2
+      - ./data/:/var/lib/influxdb2    
+    ports:
+      - 8086:8086
+    networks:
+      - DataProxy
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:8.5.4
+    env_file:
+      - Grafana.env
+    ports:
+      - 3000:3000
+    volumes:
+      - ./provisioning/datasources/:/etc/grafana/provisioning/datasources
+      - ./provisioning/dashboards/:/etc/grafana/provisioning/dashboards
+      - ./provisioning/notifiers/:/etc/grafana/provisioning/notifiers/
+      - ./provisioning/IoT_AQMS/:/etc/dashboards/IoT_AQMS/
+    networks:
+      - DataProxy
+
+networks:
+  DataProxy:
+    name: DataProxy-network
+    driver: bridge

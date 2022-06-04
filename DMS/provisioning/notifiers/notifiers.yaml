@@ -1,0 +1,10 @@
+notifiers:
+  - name: 'Telegram'
+    type: 'telegram'
+    uid: 'eJo4ys9nk'
+    disable_resolve_message: false
+    settings:
+      chatid: "1667895910"
+      message: "Alert! AQI too high!"
+    secure_settings:
+      bottoken: '5590317237:AAEo-xY2OvfplF3giEEJg9VJRVJHNQr-CKY'

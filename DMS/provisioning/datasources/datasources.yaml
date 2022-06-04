@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    uid: rFoKsy97z
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    allowUiUpdates: true
+    secureJsonData:
+      token: NKE2veJrrRSVIm-BAjhNfK7nr_7YngSK3GddiLOL1_4_xzI_BabNwoJf1P5Vm_KsoYIH-ZQswKvyZwYAsqXa6Q==
+    jsonData:
+      version: Flux
+      organization: sembrava_qualcuno
+      defaultBucket: sensor-data
