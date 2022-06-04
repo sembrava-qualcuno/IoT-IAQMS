@@ -22,6 +22,18 @@ services:
       - DataProxy-network
     depends_on:
       - mosquitto
+  
+  configuration-microservice:
+    container_name: configuration-microservice
+    image: configuration-microservice:latest
+    env_file:
+      - configuration-microservice.env
+    ports:
+      - 3001:3000
+    networks:
+      - DataProxy-network
+    depends_on:
+      - mosquitto
     
 networks:
   DataProxy-network:
