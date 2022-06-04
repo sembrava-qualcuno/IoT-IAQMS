@@ -1,5 +1,6 @@
 from signal import signal, SIGINT
 from sys import exit
+import os
 import paho.mqtt.client as mqtt_client
 import aiocoap as coap
 import aiocoap.resource as resource
@@ -9,25 +10,64 @@ from influxdb_client.client.write_api import ASYNCHRONOUS
 
 
 # mqtt parameters
-broker = "localhost"
-broker_port = 1883
-topic = "/sensor-data"
+if os.environ["MQTT_BROKER_HOST"] is not None:
+    broker = os.environ["MQTT_BROKER_HOST"]
+else:
+    broker = "mosquitto"
+
+if os.environ["MQTT_BROKER_PORT"] is not None:
+    broker_port = int(os.environ["MQTT_BROKER_PORT"])
+else:
+    broker_port = 1883
+
+if os.environ["MQTT_TOPIC"] is not None:
+    topic = os.environ["MQTT_TOPIC"]
+else:
+    topic = "/sensor-data"
+
 client_id = "data-microservice-client-1"
 
 # coap parameters
-coap_server = "localhost"
-coap_port = 8080
+if os.environ["COAP_SERVER_HOST"] is not None:
+    coap_server = os.environ["COAP_SERVER_HOST"]
+else:
+    coap_server = "0.0.0.0"
+
+if os.environ["COAP_SERVER_PORT"] is not None:
+    coap_port = int(os.environ["COAP_SERVER_PORT"])
+else:
+    coap_port = 8080
 
 
 # influx parameters
-bucket = "sensor-data"
-org = "sembrava_qualcuno"
-token = "HfiRuB99Z4opkWAeV85Q85TyqDnTc23rIPXjez0Ekh82E3CKC5Y5jMoGtYAbkeTAQfBWIhnO26y1kMwe7AxX8w=="
-influx_url = "http://localhost:8086"
+if os.environ["INFLUX_BUCKET"] is not None:
+    bucket = os.environ["INFLUX_BUCKET"]
+else:
+    bucket = "sensor-data"
+
+if os.environ["INFLUX_ORG"] is not None:
+    org = os.environ["INFLUX_ORG"]
+else:
+    org = "sembrava_qualcuno"
+
+if os.environ["INFLUX_TOKEN"] is not None:
+    token = os.environ["INFLUX_TOKEN"]
+else:
+    token = "vTJDvi1I0x6nBjKBaNFHiQUX9yh42OpxXNuJDslyxc4WBitHRfRPWHb13USCb2-fHzpO1ybVd5n-Ryvuzg3bfQ=="
+
+if os.environ["INFLUX_URL"] is not None:
+    influx_url = os.environ["INFLUX_URL"]
+else:
+    influx_url = "http://influxdb:8086"
+
+
+print("Attempting to connect to: %s\nOrg: %s\nBucket: %s" %
+      (influx_url, org, bucket))
 influx_client = influxdb_client.InfluxDBClient(
     url=influx_url,
     token=token,
     org=org)
+print("Created client for influx connection!")
 write_api = influx_client.write_api(write_options=ASYNCHRONOUS)
 
 
@@ -53,7 +93,7 @@ def parse_and_send(measurement: str) -> bool:
 
     # Create Influx point and return
 
-    p = influxdb_client.Point("sensor-data2").tag("device-id", int(data_list[0])).tag("GPS", str(data_list[1])+","+str(data_list[2])).field(
+    p = influxdb_client.Point("data-microservice-client-1").tag("device_id", int(data_list[0])).tag("GPS", str(data_list[1])+","+str(data_list[2])).field(
         "temp", int(data_list[3])).field("hum", int(data_list[4])).field("gas", int(data_list[5])).field("AQI", int(data_list[6])).field("RSSI", int(data_list[7]))
     print("Influx record: ", p)
     write_api.write(bucket=bucket, org=org, record=p)
@@ -137,7 +177,8 @@ def main():
         root, bind=(coap_server, coap_port)))
 
     # Run MQTT subscriber
-    print("Setting up MQTT subscriber")
+    print("Setting up MQTT subscriber\n Connecting to %s:%s" %
+          (broker, broker_port))
     run_mqtt()
 
     try:

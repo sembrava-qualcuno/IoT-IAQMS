@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    restart: always
+    volumes:
+      - ./conf:/mosquitto/config
+    ports:
+      - 1883:1883
+    networks:
+      - DataProxy-network
+
+  data-microservice:
+    container_name: data-microservice
+    image: data-microservice:latest
+    ports:
+      - 8080:8080/udp
+    env_file:
+      - data-microservice.env
+    networks:
+      - DataProxy-network
+    depends_on:
+      - mosquitto
+    
+networks:
+  DataProxy-network:
+    external: true
+      
