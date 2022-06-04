@@ -1,0 +1,111 @@
+openapi: 3.0.1
+info:
+  title: IoT-IAQMS
+  description: ''
+  contact:
+    name: 'IoT-IAQMS'
+    url: https://github.com/sembrava-qualcuno/IoT-IAQMS
+  version: 1.0.0
+servers:
+  - url: localhost:8080
+tags:
+  - name: Configuration
+    description: Configure device's parameters
+paths:
+  /devices/{deviceId}:
+    put:
+      tags:
+        - Configuration
+      summary: Change the device's parameters
+      description: 'Set the SAMPLE_FREQUENCY, MIN_GAS_VALUE, MAX_GAS_VALUE or PROTOCOL'
+      parameters:
+        - in: path
+          name: deviceId
+          required: true
+          schema:
+            type: integer
+          description: The device id
+        
+      requestBody:
+        description: Device configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+            examples:
+              Change sample frequency:
+                value:
+                  sampleFrequency: 5
+              Change min and max gas values:
+                value:
+                  minGasValue: 0
+                  maxGasValue: 10
+              Change protocol:
+                value:
+                  protocol: "coap"
+        required: true
+        
+        
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: One or more of the supplied parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                Negative integer:
+                  value:
+                    code: 1
+                    message: "The sample frequency, min and max gas value must be a positive integer"
+                Bad  protocol:
+                  value:
+                    code: 2
+                    message: "Protocol not supported"
+                    
+                    
+                    
+        '404':
+          description: The device not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                code: 3
+                message: "The device not exist"
+                
+                
+                
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        sampleFrequency:
+          type: integer
+          example: 5
+        minGasValue:
+          type: integer
+          example: 0
+        maxGasValue:
+          type: integer
+          example: 10
+        protocol:
+          type: string
+          enum: [coap, mqtt]
+    ApiError:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: Error message
