@@ -8,7 +8,7 @@ datasources:
     url: http://influxdb:8086
     allowUiUpdates: true
     secureJsonData:
-      token: NKE2veJrrRSVIm-BAjhNfK7nr_7YngSK3GddiLOL1_4_xzI_BabNwoJf1P5Vm_KsoYIH-ZQswKvyZwYAsqXa6Q==
+      token: Dq6nsMOa5XfTF2lTFEjKe83-T0OITbHodQP8IdZ4eti8TFP_3sMbMoVAZSLtScSW_x22jhKuSQ_KxawiCGdYrA==
     jsonData:
       version: Flux
       organization: sembrava_qualcuno
