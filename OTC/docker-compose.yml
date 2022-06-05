@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  otc:
+    container_name: outdoor-temperature-component
+    image: outdoor-temperature-component:latest
+    env_file:
+      - otc.env
+    networks:
+      - DataProxy-network
+      
+networks:
+  DataProxy-network:
+    external: true
+      
