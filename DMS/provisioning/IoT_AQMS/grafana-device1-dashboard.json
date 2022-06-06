@@ -81,7 +81,32 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Actual"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Forecasted"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -109,6 +134,15 @@
           },
           "query": "from(bucket: \"sensor-data\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r.device_id == \"1\" and\r\n    r._field == \"temp\"\r\n  )",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "rFoKsy97z"
+          },
+          "hide": false,
+          "query": "from(bucket: \"data-analytics\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r._field == \"temp\"\r\n  )",
+          "refId": "B"
         }
       ],
       "title": "Temperature",
@@ -167,7 +201,56 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Forecasted"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Actual"
+              }
+            ]
+          },
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "Actual"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -195,6 +278,15 @@
           },
           "query": "from(bucket: \"sensor-data\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r.device_id == \"1\" and\r\n    r._field == \"hum\"\r\n  )",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "rFoKsy97z"
+          },
+          "hide": false,
+          "query": "from(bucket: \"data-analytics\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r._field == \"hum\"\r\n  )",
+          "refId": "B"
         }
       ],
       "title": "Humidity",
@@ -253,7 +345,32 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Actual"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Forecasted"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -281,6 +398,15 @@
           },
           "query": "from(bucket: \"sensor-data\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r.device_id == \"1\" and\r\n    r._field == \"gas\"\r\n  )",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "rFoKsy97z"
+          },
+          "hide": false,
+          "query": "from(bucket: \"data-analytics\")\r\n  |> range(start: v.timeRangeStart, stop:v.timeRangeStop)\r\n  |> filter(fn: (r) =>\r\n    r._field == \"gas\"\r\n  )",
+          "refId": "B"
         }
       ],
       "title": "Gas",
@@ -553,13 +679,13 @@
     "list": []
   },
   "time": {
-    "from": "2022-06-05T11:16:17.431Z",
-    "to": "2022-06-05T14:48:54.419Z"
+    "from": "2022-06-05T22:00:00.000Z",
+    "to": "2022-06-07T21:59:59.000Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Device 1",
   "uid": "mdkPyy97k",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
