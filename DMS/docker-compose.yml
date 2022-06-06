@@ -12,7 +12,7 @@ services:
       - DataProxy
 
   grafana:
-    container_name: grafana
+    container_name: dms_grafana
     image: grafana/grafana:8.5.4
     env_file:
       - Grafana.env
@@ -25,6 +25,14 @@ services:
       - ./provisioning/IoT_AQMS/:/etc/dashboards/IoT_AQMS/
     networks:
       - DataProxy
+
+  data-analytics:
+    container_name: data-analytics
+    image: sembravaqualcuno/data-analytics
+    env_file:
+      - data-analytics.env
+    networks:
+        - DataProxy
 
 networks:
   DataProxy:
