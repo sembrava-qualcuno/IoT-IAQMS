@@ -26,7 +26,7 @@ const supportedProtocols = {
 
 // Parameters encoding function
 function encodeParameters(parameters) {
-    return `${typeof parameters.sampleFrequency == 'undefined' ? '' : parameters.sampleFrequency},${typeof parameters.minGasValue == 'undefined' ? '' : parameters.minGasValue},${typeof parameters.maxGasValue == 'undefined' ? '' : parameters.maxGasValue}`
+    return `${typeof parameters.sampleFrequency == 'undefined' ? ' ' : parameters.sampleFrequency},${typeof parameters.minGasValue == 'undefined' ? ' ' : parameters.minGasValue},${typeof parameters.maxGasValue == 'undefined' ? ' ' : parameters.maxGasValue}`
 }
 
 // Api errors

@@ -13,7 +13,7 @@ services:
 
   data-microservice:
     container_name: data-microservice
-    image: sembravaqualcuno/data-microservice:latest
+    image: sembravaqualcuno/data-microservice
     ports:
       - 8080:8080/udp
     env_file:
@@ -25,7 +25,7 @@ services:
   
   configuration-microservice:
     container_name: configuration-microservice
-    image: sembravaqualcuno/configuration-microservice:latest
+    image: sembravaqualcuno/configuration-microservice
     env_file:
       - configuration-microservice.env
     ports:
