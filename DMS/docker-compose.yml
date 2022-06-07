@@ -33,6 +33,14 @@ services:
       - data-analytics.env
     networks:
         - DataProxy
+  
+  telegram-bot:
+    container_name: dms_telegram-bot
+    image: sembravaqualcuno/telegram-bot
+    env_file:
+      - telegram-bot.env
+    networks:
+      - DataProxy
 
 networks:
   DataProxy:
