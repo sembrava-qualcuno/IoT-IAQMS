@@ -56,10 +56,21 @@ typedef struct Parameters
  */
 extern QueueHandle_t parameter_queue;
 extern QueueHandle_t protocol_queue;
+extern QueueHandle_t performance_queue;
 extern const char *ssid;
 extern const char *password;
 extern Coap coap;
 extern PubSubClient mqtt_client;
+
+// Performance evaluation variables
+extern volatile long coap_pkt_time;
+extern volatile long coap_pkt_delay_tot;
+extern volatile int coap_pkt_sent;
+extern volatile int coap_pkt_rcv;
+extern volatile long mqtt_pkt_time;
+extern volatile long mqtt_pkt_delay_tot;
+extern volatile int mqtt_pkt_sent;
+extern volatile int mqtt_pkt_rcv;
 
 /*
  * 
@@ -69,8 +80,8 @@ extern PubSubClient mqtt_client;
 extern void setup_wifi();
 extern void setup_MQ2(MQUnifiedsensor *MQ2);
 extern void setup_DHT(DHT_Unified *dht);
-extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol);
-extern void send_data(String data, int protocol);
+extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol, volatile int *performance_nPackets);
+extern void send_data(String data, int protocol, volatile int *performance_nPackets);
 extern int computeAQI(float gas, int min_gas_value, int max_gas_value);
 extern void get_dht_data(DHT_Unified *dht, String *data);
 extern float get_mq2_data(MQUnifiedsensor *MQ2, String *data);

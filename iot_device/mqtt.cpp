@@ -36,6 +36,24 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         xQueueOverwrite(protocol_queue, (void *)&protocol);
     }
+    else if (strcmp(topic, PERFORMANCE_READ_TOPIC))
+    {
+      int nPackets = atoi((char *) payload);
+      xQueueOverwrite(protocol_queue, (void *)&nPackets);
+    }
+    else if (strcmp(topic, WRITE_TOPIC))
+    {
+      // Get packet RTT and update received packet count
+      long pkt_RTT = millis() - mqtt_pkt_time;
+      mqtt_pkt_delay_tot += pkt_RTT;
+      mqtt_pkt_rcv++;
+      Serial.println("[MQTT Packet arrived to broker]");
+      Serial.print("Packet RTT: "); Serial.println(pkt_RTT);
+  
+      // Calculate average packets delay and PDR
+      Serial.print("Average MQTT packets Delay: "); Serial.println(mqtt_pkt_delay_tot/mqtt_pkt_rcv);
+      Serial.print("MQTT Packet Delivery Ratio so far: "); Serial.print((mqtt_pkt_sent/mqtt_pkt_rcv) * 100); Serial.println("%");
+    }
 }
 
 // Function used to reconnect to the broker
@@ -50,6 +68,9 @@ void reconnect()
         if (mqtt_client.connect(MQTT_CLIENT))
         {
             Serial.println("connected");
+            mqtt_client.subscribe(PARAMETERS_TOPIC);
+            mqtt_client.subscribe(PROTOCOL_TOPIC);
+            mqtt_client.subscribe(PERFORMANCE_READ_TOPIC);
         }
         else
         {

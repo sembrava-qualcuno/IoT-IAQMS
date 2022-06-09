@@ -4,6 +4,16 @@
 
 static volatile float last_gas[5] = {-1, -1, -1, -1, -1};
 
+volatile long coap_pkt_time = 0;
+volatile long coap_pkt_delay_tot = 0;
+volatile int coap_pkt_sent = 0;
+volatile int coap_pkt_rcv = 0;
+
+volatile long mqtt_pkt_time = 0;
+volatile long mqtt_pkt_delay_tot = 0;
+volatile int mqtt_pkt_sent = 0;
+volatile int mqtt_pkt_rcv = 0;
+
 void setup_wifi()
 {
     Serial.begin(9600);
@@ -126,15 +136,16 @@ void setup_DHT(DHT_Unified *dht)
     Serial.println(F("------------------------------------"));
 }
 
-extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol)
+extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol, volatile int *performance_nPackets)
 {
     Parameters parameters;
     int proto;
+    int nPackets;
     if (xQueueReceive(protocol_queue, &proto, (TickType_t)0) == pdTRUE)
     {
         *protocol = proto;
 
-        // Safe new conf on EEPROM
+        // Save new conf on EEPROM
         EEPROM.put(0, proto);
     }
     
@@ -147,27 +158,78 @@ extern void check_conf_updates(volatile int *sample_frequency, volatile int *min
         if(parameters.max_gas_value != -1) 
           *max_gas_value = parameters.max_gas_value;
 
-         // Safe new conf on EEPROM
+         // Save new conf on EEPROM
          parameters.sample_frequency = *sample_frequency;
          parameters.min_gas_value = *min_gas_value;;
          parameters.max_gas_value = *max_gas_value;
          EEPROM.put(sizeof(int), parameters);
     }
+
+    if (xQueueReceive(performance_queue, &nPackets, (TickType_t)0) == pdTRUE)
+        *performance_nPackets = nPackets;
 }
 
-void send_data(String data, int protocol)
+void send_data(String data, int protocol, volatile int *performance_nPackets)
 {
+    bool performance_eval = ((*performance_nPackets == 0) ? false : true);
+
     char payload[data.length()+1];
+    data.toCharArray(payload, data.length()+1);
+  
     switch (protocol)
     {
     case 0:
         Serial.println("Sending COAP Request");
+        if(performance_eval && coap_pkt_sent == *performance_nPackets)
+        {            
+            // Send the report to the MQTT broker
+            String pe = String(coap_pkt_delay_tot/coap_pkt_rcv) + String(",") + String((coap_pkt_sent/coap_pkt_rcv) * 100);
+            char perf_eval[pe.length()+1];
+            data.toCharArray(perf_eval, pe.length()+1);
+            mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
+
+            // Performance evaluation completed, reset all pe variables
+            *performance_nPackets = 0;
+            performance_eval = false;
+            coap_pkt_time = 0;
+            coap_pkt_delay_tot = 0;
+            coap_pkt_sent = 0;
+            coap_pkt_rcv = 0;
+        }
+        if(performance_eval)
+          coap_pkt_time = millis(); 
         post(COAP_SERVER, COAP_PORT, COAP_RESOURCE, (uint8_t *) payload, strlen(payload));
+        if(performance_eval)
+          coap_pkt_sent++;
         break;
     case 1:
         Serial.println("Sending data to /sensor-data topic");
+        if(performance_eval && mqtt_pkt_sent == *performance_nPackets)
+        {            
+            // Send the report to the MQTT broker
+            String pe = String(mqtt_pkt_delay_tot/mqtt_pkt_rcv) + String(",") + String((mqtt_pkt_sent/mqtt_pkt_rcv) * 100);
+            char perf_eval[pe.length()+1];
+            data.toCharArray(perf_eval, pe.length()+1);
+            mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
+
+            // Performance evaluation completed, reset all pe variables
+            *performance_nPackets = 0;
+            performance_eval = false;
+            mqtt_pkt_time = 0;
+            mqtt_pkt_delay_tot = 0;
+            mqtt_pkt_sent = 0;
+            mqtt_pkt_rcv = 0;
+            mqtt_client.unsubscribe(WRITE_TOPIC);
+        }
+        else if (performance_eval && mqtt_pkt_sent == 0)
+          mqtt_client.subscribe(WRITE_TOPIC);
+        
+        if(performance_eval)
+          mqtt_pkt_time = millis();
         mqtt_client.publish(WRITE_TOPIC, payload);
         Serial.print("Successfully sent sensor data through MQTT");
+        if(performance_eval)
+          mqtt_pkt_sent++;
         break;
     default:
         Serial.println("Wrong protocol!"); break;

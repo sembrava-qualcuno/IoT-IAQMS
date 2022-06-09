@@ -10,6 +10,8 @@
 #define WRITE_TOPIC "/sensor-data"
 #define PARAMETERS_TOPIC "/devices/" DEVICE_ID "/parameters"
 #define PROTOCOL_TOPIC "/devices/" DEVICE_ID "/protocol"
+#define PERFORMANCE_READ_TOPIC "/devices/" DEVICE_ID "/performance/activate"
+#define PERFORMANCE_WRITE_TOPIC "/devices/" DEVICE_ID "/performance/evaluation"
 
 // Variables declaration
 extern PubSubClient mqtt_client;

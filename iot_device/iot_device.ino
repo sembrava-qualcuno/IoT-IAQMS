@@ -17,6 +17,7 @@ static volatile int SAMPLE_FREQUENCY = 60; // in seconds
 static volatile int MIN_GAS_VALUE = 1;     // TODO: change this values
 static volatile int MAX_GAS_VALUE = 3;     // TODO: change this values
 static volatile int PROTOCOL = 0;
+static volatile int PERFORMANCE_EVAL = 0;
 
 /****************************** COAP class definition ******************************/
 WiFiUDP udp;
@@ -43,6 +44,7 @@ TaskHandle_t DataTask;
 TaskHandle_t ConfigurationTask;
 QueueHandle_t parameter_queue;
 QueueHandle_t protocol_queue;
+QueueHandle_t performance_queue;
 
 /*
  *
@@ -58,6 +60,7 @@ void configuration_task(void *)
 
   mqtt_client.subscribe(PARAMETERS_TOPIC);
   mqtt_client.subscribe(PROTOCOL_TOPIC);
+  mqtt_client.subscribe(PERFORMANCE_READ_TOPIC);
 
   mqtt_client.loop();
 }
@@ -70,11 +73,10 @@ void configuration_task(void *)
 void data_task(void *)
 {
   // Check the queues for configuration updates
-  check_conf_updates(&SAMPLE_FREQUENCY, &MIN_GAS_VALUE, &MAX_GAS_VALUE, &PROTOCOL);
+  check_conf_updates(&SAMPLE_FREQUENCY, &MIN_GAS_VALUE, &MAX_GAS_VALUE, &PROTOCOL, &PERFORMANCE_EVAL);
 
   // Get data from sensors
   String data = String(DEVICE_ID)+String(",")+String(GPS)+String(",");
-  //char *data = strcat(strcat(strcat(DEVICE_ID, ","), GPS), ","); // TODO: dimensiona per bene
   get_dht_data(&dht, &data);
   float gas = get_mq2_data(&MQ2, &data);
 
@@ -89,7 +91,7 @@ void data_task(void *)
   long RSSI = WiFi.RSSI();
   data += String(RSSI);
   // Send data to data-microservice
-  send_data(data, PROTOCOL);
+  send_data(data, PROTOCOL, &PERFORMANCE_EVAL);
 
   coap.loop();
 
@@ -136,6 +138,8 @@ void setup()
 
   parameter_queue = xQueueCreate(1, 3 * sizeof(int));
   protocol_queue = xQueueCreate(1, sizeof(int));
+  performance_queue = xQueueCreate(1, sizeof(int));
+  
 
   Serial.println("Setup completed.");
 
