@@ -82,11 +82,12 @@ def parse_and_send(measurement: str) -> bool:
         print("Received data is not complete\nCannot send data to influx!\n")
         return False
 
+    aqi = True
     # Check that data is well formatted
     try:
         int(data_list[0])
         float(data_list[1-5])
-        int(data_list[7])
+        float(data_list[7])
         if (data_list[6] == " "):
             aqi = False
         else:
@@ -103,7 +104,7 @@ def parse_and_send(measurement: str) -> bool:
             "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("AQI", int(data_list[6])).field("RSSI", float(data_list[7]))
     else:
         p = influxdb_client.Point("data-microservice-client-1").tag("device_id", int(data_list[0])).tag("GPS", str(data_list[1])+","+str(data_list[2])).field(
-            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("AQI", data_list[6]).field("RSSI", float(data_list[7]))
+            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("RSSI", float(data_list[7]))
     print("Influx record: ", p)
     write_api.write(bucket=bucket, org=org, record=p)
     print("Data successfully sent to Influx")
