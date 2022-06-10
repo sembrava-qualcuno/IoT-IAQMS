@@ -10,17 +10,17 @@ from influxdb_client.client.write_api import ASYNCHRONOUS
 
 
 # mqtt parameters
-if os.environ["MQTT_BROKER_HOST"] is not None:
+if "MQTT_BROKER_HOST" in os.environ:
     broker = os.environ["MQTT_BROKER_HOST"]
 else:
     broker = "mosquitto"
 
-if os.environ["MQTT_BROKER_PORT"] is not None:
+if "MQTT_BROKER_PORT" in os.environ:
     broker_port = int(os.environ["MQTT_BROKER_PORT"])
 else:
     broker_port = 1883
 
-if os.environ["MQTT_TOPIC"] is not None:
+if "MQTT_TOPIC" in os.environ:
     topic = os.environ["MQTT_TOPIC"]
 else:
     topic = "/sensor-data"
@@ -28,34 +28,34 @@ else:
 client_id = "data-microservice-client-1"
 
 # coap parameters
-if os.environ["COAP_SERVER_HOST"] is not None:
+if "COAP_SERVER_HOST" in os.environ:
     coap_server = os.environ["COAP_SERVER_HOST"]
 else:
     coap_server = "0.0.0.0"
 
-if os.environ["COAP_SERVER_PORT"] is not None:
+if "COAP_SERVER_PORT" in os.environ:
     coap_port = int(os.environ["COAP_SERVER_PORT"])
 else:
     coap_port = 8080
 
 
 # influx parameters
-if os.environ["INFLUX_BUCKET"] is not None:
+if "INFLUX_BUCKET" in os.environ:
     bucket = os.environ["INFLUX_BUCKET"]
 else:
     bucket = "sensor-data"
 
-if os.environ["INFLUX_ORG"] is not None:
+if "INFLUX_ORG" in os.environ:
     org = os.environ["INFLUX_ORG"]
 else:
     org = "sembrava_qualcuno"
 
-if os.environ["INFLUX_TOKEN"] is not None:
+if "INFLUX_TOKEN" in os.environ:
     token = os.environ["INFLUX_TOKEN"]
 else:
     token = "vTJDvi1I0x6nBjKBaNFHiQUX9yh42OpxXNuJDslyxc4WBitHRfRPWHb13USCb2-fHzpO1ybVd5n-Ryvuzg3bfQ=="
 
-if os.environ["INFLUX_URL"] is not None:
+if "INFLUX_URL" in os.environ:
     influx_url = os.environ["INFLUX_URL"]
 else:
     influx_url = "http://influxdb:8086"
@@ -87,7 +87,7 @@ def parse_and_send(measurement: str) -> bool:
     try:
         int(data_list[0])
         float(data_list[1-5])
-        float(data_list[7])
+        int(data_list[7])
         if (data_list[6] == " "):
             aqi = False
         else:
@@ -101,10 +101,10 @@ def parse_and_send(measurement: str) -> bool:
 
     if(aqi):
         p = influxdb_client.Point("data-microservice-client-1").tag("device_id", int(data_list[0])).tag("GPS", str(data_list[1])+","+str(data_list[2])).field(
-            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("AQI", int(data_list[6])).field("RSSI", float(data_list[7]))
+            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("AQI", int(data_list[6])).field("RSSI", int(data_list[7]))
     else:
         p = influxdb_client.Point("data-microservice-client-1").tag("device_id", int(data_list[0])).tag("GPS", str(data_list[1])+","+str(data_list[2])).field(
-            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("RSSI", float(data_list[7]))
+            "temp", float(data_list[3])).field("hum", float(data_list[4])).field("gas", float(data_list[5])).field("RSSI", int(data_list[7]))
     print("Influx record: ", p)
     write_api.write(bucket=bucket, org=org, record=p)
     print("Data successfully sent to Influx")
