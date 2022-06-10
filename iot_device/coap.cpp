@@ -4,11 +4,14 @@
 void callback_response(CoapPacket &packet, IPAddress ip, int port)
 {
     // Get packet RTT and update received packet count
-    long pkt_RTT = millis() - coap_pkt_time;
-    coap_pkt_delay_tot += pkt_RTT;
-    coap_pkt_rcv++;
+    if(PERFORMANCE_EVAL != 0)
+    {
+      long pkt_RTT = millis() - coap_pkt_time;
+      coap_pkt_delay_tot += pkt_RTT;
+      coap_pkt_rcv++;
+      Serial.print("Packet RTT: "); Serial.println(pkt_RTT);
+    }
     Serial.println("[Coap Response got]");
-    Serial.print("Packet RTT: "); Serial.println(pkt_RTT);
 
     char p[packet.payloadlen + 1];
     memcpy(p, packet.payload, packet.payloadlen);
@@ -18,8 +21,11 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port)
     Serial.println(p);
     
     // Calculate average packets delay and PDR
-    Serial.print("Average COAP packets Delay: "); Serial.println(coap_pkt_delay_tot/coap_pkt_rcv);
-    Serial.print("COAP Packet Delivery Ratio so far: "); Serial.print((coap_pkt_sent/coap_pkt_rcv) * 100); Serial.println("%");
+    if(PERFORMANCE_EVAL != 0)
+    {
+      Serial.print("Average COAP packets Delay: "); Serial.println(coap_pkt_delay_tot/coap_pkt_rcv);
+      Serial.print("COAP Packet Delivery Ratio so far: "); Serial.print((coap_pkt_sent/coap_pkt_rcv) * 100); Serial.println("%");
+    }
 }
 
 

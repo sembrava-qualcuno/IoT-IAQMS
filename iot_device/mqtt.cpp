@@ -12,35 +12,22 @@ void callback(char *topic, byte *payload, unsigned int length)
         Parameters p;
         char *token = strtok((char *) payload, ",");
         if (!strcmp(token, " "))
-            p.sample_frequency = atoi(token);
-		else
-			p.sample_frequency = -1;
+            SAMPLE_FREQUENCY = atoi(token);
 
         token = strtok(NULL, ",");
         if (!strcmp(token, " "))
-            p.min_gas_value = atoi(token);
-		else
-			p.min_gas_value = -1;
-
+            MIN_GAS_VALUE = atoi(token);
+		
         token = strtok(NULL, ",");
         if (!strcmp(token, " "))
-            p.max_gas_value = atoi(token);
-		else
-			p.max_gas_value = -1;
-
-        xQueueOverwrite(parameter_queue, (void *)&p);
+            MAX_GAS_VALUE = atoi(token);
     }
     else if (strcmp(topic, PROTOCOL_TOPIC))
-    {
-        int protocol = atoi((char *) payload);
-
-        xQueueOverwrite(protocol_queue, (void *)&protocol);
-    }
+      PROTOCOL = atoi((char *) payload);
+      
     else if (strcmp(topic, PERFORMANCE_READ_TOPIC))
-    {
-      int nPackets = atoi((char *) payload);
-      xQueueOverwrite(protocol_queue, (void *)&nPackets);
-    }
+      PERFORMANCE_EVAL = atoi((char *) payload);
+      
     else if (strcmp(topic, WRITE_TOPIC))
     {
       // Get packet RTT and update received packet count

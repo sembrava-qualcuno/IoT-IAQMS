@@ -16,8 +16,6 @@ volatile int mqtt_pkt_rcv = 0;
 
 void setup_wifi()
 {
-    Serial.begin(9600);
-
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED)
     {
@@ -136,51 +134,18 @@ void setup_DHT(DHT_Unified *dht)
     Serial.println(F("------------------------------------"));
 }
 
-extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol, volatile int *performance_nPackets)
+void send_data(String data)
 {
-    Parameters parameters;
-    int proto;
-    int nPackets;
-    if (xQueueReceive(protocol_queue, &proto, (TickType_t)0) == pdTRUE)
-    {
-        *protocol = proto;
-
-        // Save new conf on EEPROM
-        EEPROM.put(0, proto);
-    }
-    
-    if (xQueueReceive(parameter_queue, &parameters, (TickType_t)0) == pdTRUE)
-    {
-        if(parameters.sample_frequency != -1)
-          *sample_frequency = parameters.sample_frequency;
-        if(parameters.min_gas_value != -1)
-          *min_gas_value = parameters.min_gas_value;
-        if(parameters.max_gas_value != -1) 
-          *max_gas_value = parameters.max_gas_value;
-
-         // Save new conf on EEPROM
-         parameters.sample_frequency = *sample_frequency;
-         parameters.min_gas_value = *min_gas_value;;
-         parameters.max_gas_value = *max_gas_value;
-         EEPROM.put(sizeof(int), parameters);
-    }
-
-    if (xQueueReceive(performance_queue, &nPackets, (TickType_t)0) == pdTRUE)
-        *performance_nPackets = nPackets;
-}
-
-void send_data(String data, int protocol, volatile int *performance_nPackets)
-{
-    bool performance_eval = ((*performance_nPackets == 0) ? false : true);
+    bool performance_eval = ((PERFORMANCE_EVAL == 0) ? false : true);
 
     char payload[data.length()+1];
     data.toCharArray(payload, data.length()+1);
   
-    switch (protocol)
+    switch (PROTOCOL)
     {
     case 0:
         Serial.println("Sending COAP Request");
-        if(performance_eval && coap_pkt_sent == *performance_nPackets)
+        if(performance_eval && coap_pkt_sent == PERFORMANCE_EVAL)
         {            
             // Send the report to the MQTT broker
             String pe = String(coap_pkt_delay_tot/coap_pkt_rcv) + String(",") + String((coap_pkt_sent/coap_pkt_rcv) * 100);
@@ -189,7 +154,7 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
 
             // Performance evaluation completed, reset all pe variables
-            *performance_nPackets = 0;
+            PERFORMANCE_EVAL = 0;
             performance_eval = false;
             coap_pkt_time = 0;
             coap_pkt_delay_tot = 0;
@@ -204,7 +169,7 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
         break;
     case 1:
         Serial.println("Sending data to /sensor-data topic");
-        if(performance_eval && mqtt_pkt_sent == *performance_nPackets)
+        if(performance_eval && mqtt_pkt_sent == PERFORMANCE_EVAL)
         {            
             // Send the report to the MQTT broker
             String pe = String(mqtt_pkt_delay_tot/mqtt_pkt_rcv) + String(",") + String((mqtt_pkt_sent/mqtt_pkt_rcv) * 100);
@@ -213,7 +178,7 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
 
             // Performance evaluation completed, reset all pe variables
-            *performance_nPackets = 0;
+            PERFORMANCE_EVAL = 0;
             performance_eval = false;
             mqtt_pkt_time = 0;
             mqtt_pkt_delay_tot = 0;
@@ -236,7 +201,7 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
     }
 }
 
-int computeAQI(float gas, int min_gas_value, int max_gas_value)
+int computeAQI(float gas)
 {
     int AQI = -1;
 
@@ -253,9 +218,9 @@ int computeAQI(float gas, int min_gas_value, int max_gas_value)
     {
         float avg = (last_gas[0] + last_gas[1] + last_gas[2] + last_gas[3] + last_gas[4]) / 5;
 
-        if (avg >= max_gas_value)
+        if (avg >= MAX_GAS_VALUE)
             AQI = 0;
-        else if (avg < max_gas_value && avg >= min_gas_value)
+        else if (avg < MAX_GAS_VALUE && avg >= MIN_GAS_VALUE)
             AQI = 1;
         else
             AQI = 2;
@@ -310,27 +275,27 @@ float get_mq2_data(MQUnifiedsensor *MQ2, String *data)
     return gas;
 }
 
-void get_conf_eeprom(volatile int *protocol, volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value)
+void get_conf_eeprom()
 {
   Parameters p;
-  int proto = *protocol;
+  int proto = PROTOCOL;
   // Empty EEPROM, initialize with default values
   if(EEPROM.read(0) == 255)
   {
     EEPROM.put(0, proto);
     
-    p.sample_frequency = *sample_frequency;
-    p.min_gas_value = *min_gas_value;
-    p.max_gas_value = *max_gas_value;
+    p.sample_frequency = SAMPLE_FREQUENCY;
+    p.min_gas_value = MIN_GAS_VALUE;
+    p.max_gas_value = MAX_GAS_VALUE;
     EEPROM.put(sizeof(int), p);
   }
   else
   {
     EEPROM.get(0, proto);
-    *protocol = proto;
+    PROTOCOL = proto;
     EEPROM.get(sizeof(int), p);
-    *sample_frequency = p.sample_frequency;
-    *min_gas_value = p.min_gas_value;
-    *max_gas_value = p.max_gas_value;
+    SAMPLE_FREQUENCY = p.sample_frequency;
+    MIN_GAS_VALUE = p.min_gas_value;
+    MAX_GAS_VALUE = p.max_gas_value;
   }
 }

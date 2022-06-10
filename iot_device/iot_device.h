@@ -4,8 +4,6 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
-#include <freertos/task.h>
-#include <freertos/queue.h>
 #include <HardwareSerial.h>
 #include <stddef.h>
 #include <Adafruit_Sensor.h>
@@ -54,13 +52,16 @@ typedef struct Parameters
  * Global variables declaration
  * 
  */
-extern QueueHandle_t parameter_queue;
-extern QueueHandle_t protocol_queue;
-extern QueueHandle_t performance_queue;
 extern const char *ssid;
 extern const char *password;
 extern Coap coap;
 extern PubSubClient mqtt_client;
+
+extern volatile int SAMPLE_FREQUENCY; // in seconds
+extern volatile int MIN_GAS_VALUE;    
+extern volatile int MAX_GAS_VALUE;    
+extern volatile int PROTOCOL;
+extern volatile int PERFORMANCE_EVAL;
 
 // Performance evaluation variables
 extern volatile long coap_pkt_time;
@@ -80,11 +81,10 @@ extern volatile int mqtt_pkt_rcv;
 extern void setup_wifi();
 extern void setup_MQ2(MQUnifiedsensor *MQ2);
 extern void setup_DHT(DHT_Unified *dht);
-extern void check_conf_updates(volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value, volatile int *protocol, volatile int *performance_nPackets);
-extern void send_data(String data, int protocol, volatile int *performance_nPackets);
-extern int computeAQI(float gas, int min_gas_value, int max_gas_value);
+extern void send_data(String data, int protocol);
+extern int computeAQI(float gas);
 extern void get_dht_data(DHT_Unified *dht, String *data);
 extern float get_mq2_data(MQUnifiedsensor *MQ2, String *data);
-extern void get_conf_eeprom(volatile int *protocol, volatile int *sample_frequency, volatile int *min_gas_value, volatile int *max_gas_value);
+extern void get_conf_eeprom();
 
 #endif
