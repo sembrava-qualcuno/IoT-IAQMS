@@ -81,7 +81,7 @@ extern volatile int mqtt_pkt_rcv;
 extern void setup_wifi();
 extern void setup_MQ2(MQUnifiedsensor *MQ2);
 extern void setup_DHT(DHT_Unified *dht);
-extern void send_data(String data, int protocol);
+extern void send_data(String data);
 extern int computeAQI(float gas);
 extern void get_dht_data(DHT_Unified *dht, String *data);
 extern float get_mq2_data(MQUnifiedsensor *MQ2, String *data);
