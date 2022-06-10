@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  performance:
+    container_name: performance-evaluation
+    image: sembravaqualcuno/performance-evaluation:1.0
+    env_file:
+      - performance.env
+    networks:
+      - DataProxy-network
+      
+networks:
+  DataProxy-network:
+    external: true
+      
