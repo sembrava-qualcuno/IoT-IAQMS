@@ -85,19 +85,24 @@ def subscribe(client: mqtt_client):
             print("Error: too much arguments for the evaluation results")
             os._exit(1)
 
-        if not evaluation[0].isdigit():
+        try:
+            average_delay = float(evaluation[0])
+        except ValueError:
             print("Error: the average delay must be a number")
             os._exit(2)
-        if not evaluation[1].isdigit():
+
+        try:
+            packet_delivery_ratio = float(evaluation[1])
+        except ValueError:
             print("Error: the packet delivery ratio must be a number")
             os._exit(2)
-
-        print("Average delay: " + evaluation[0] + " ms")
-        print("Packet delivery ratio: " + evaluation[1] + " %")
-        os._exit(0)
+    
+        print("Average delay: {:.2f} ms".format(average_delay))
+        print("Packet delivery ratio: {:.2f} %".format(packet_delivery_ratio))
+        os._exit(0)        
 
     # Subscribe to the topic
-    client.subscribe("/devices/" + device_id + "/" + result_topic)
+    client.subscribe("/devices/" + str(device_id) + result_topic)
     client.on_message = on_message
 
 def main():
@@ -113,7 +118,7 @@ def main():
     # Creates new thread that loops on the mqtt connection
     client.loop_start()
 
-    client.publish("/devices/" + device_id + "/" + activate_topic, payload=num_packets)
+    client.publish("/devices/" + str(device_id) + activate_topic, payload=num_packets)
 
     while(True):
         pass
