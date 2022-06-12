@@ -1,4 +1,3 @@
-from telnetlib import NOP
 from telegram.ext import CallbackContext, Application
 import os
 import influxdb_client
@@ -12,6 +11,11 @@ if "INFLUX_READ_BUCKET" in os.environ:
     read_bucket = os.environ["INFLUX_READ_BUCKET"]
 else:
     read_bucket = "sensor-data"
+
+if "INFLUX_READ_MEASUREMENT" in os.environ:
+    read_measurement = os.environ["INFLUX_READ_MEASUREMENT"]
+else:
+    read_measurement = "IoT-Device"
 
 if "INFLUX_ORG" in os.environ:
     org = os.environ["INFLUX_ORG"]
@@ -39,10 +43,15 @@ if "CHAT_ID" in os.environ:
 else:
     chat_id = "-1001795240933"
 
-if "BOT_INTERVAL" in os.environ:
-    bot_interval = os.environ["BOT_INTERVAL"]
+if "BOT_INTERVAL_ALERT" in os.environ:
+    bot_interval_alert = int(os.environ["BOT_INTERVAL_ALERT"])
 else:
-    bot_interval = 60
+    bot_interval_alert = 10
+
+if "BOT_INTERVAL_AVERAGES" in os.environ:
+    bot_interval_averages = int(os.environ["BOT_INTERVAL_AVERAGES"])
+else:
+    bot_interval_averages = 60
 
 if "DATA_FRESHNESS" in os.environ:
     data_freshness = os.environ["DATA_FRESHNESS"]
@@ -79,6 +88,24 @@ def get_averages_message():
 
     return "Average values:\nTemperature: {:.1f}\nHumidity: {:.1f}\nGas: {:.1f}".format(temp_average, hum_average, gas_average)
 
+last_AQI = -1
+async def get_AQI(context: CallbackContext):
+    global last_AQI
+    query = 'from(bucket: "{}")\
+                |> range(start: 0)\
+                |> filter(fn: (r) => r["_measurement"] == "{}")\
+                |> filter(fn: (r) => r["_field"] == "AQI")\
+                |> last()'.format(read_bucket, read_measurement)
+    result = query_api.query(org=org, query=query)
+
+    current_AQI = result[0].records[0].get_value()
+    
+    if(current_AQI >= 1 and last_AQI < 1):
+        print("Alarm!")
+        await context.bot.send_message(chat_id=chat_id, text="Alert AQI!")
+    
+    last_AQI = current_AQI
+
 async def callback_minute(context: CallbackContext):
     await context.bot.send_message(chat_id=chat_id, text=get_averages_message())
 
@@ -89,7 +116,9 @@ def main():
     application = Application.builder().token(bot_token).build()
     job_queue = application.job_queue
 
-    job_minute = job_queue.run_repeating(callback_minute, interval=bot_interval, first=10)
+    job_queue.run_repeating(callback_minute, interval=bot_interval_averages, first=10)
+
+    job_queue.run_repeating(get_AQI, interval=bot_interval_alert, first=10)
 
     average_handler = CommandHandler('averages', get_average_command)
     application.add_handler(average_handler)
