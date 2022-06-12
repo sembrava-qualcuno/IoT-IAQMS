@@ -148,11 +148,14 @@ void send_data(String data)
         if(performance_eval && coap_pkt_sent == PERFORMANCE_EVAL)
         {            
             // Send the report to the MQTT broker
-            String pe = String(coap_pkt_delay_tot/coap_pkt_rcv) + String(",") + String((coap_pkt_sent/coap_pkt_rcv) * 100);
+            String pe = String(coap_pkt_delay_tot/coap_pkt_rcv) + String(",") + String((float(coap_pkt_rcv)/coap_pkt_sent) * 100);
             char perf_eval[pe.length()+1];
-            data.toCharArray(perf_eval, pe.length()+1);
+            pe.toCharArray(perf_eval, pe.length()+1);
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
 
+            Serial.print("Performance evaluation end. Results: ");
+            Serial.println(pe);
+            
             // Performance evaluation completed, reset all pe variables
             PERFORMANCE_EVAL = 0;
             performance_eval = false;
@@ -172,10 +175,13 @@ void send_data(String data)
         if(performance_eval && mqtt_pkt_sent == PERFORMANCE_EVAL)
         {            
             // Send the report to the MQTT broker
-            String pe = String(mqtt_pkt_delay_tot/mqtt_pkt_rcv) + String(",") + String((mqtt_pkt_sent/mqtt_pkt_rcv) * 100);
+            String pe = String(mqtt_pkt_delay_tot/mqtt_pkt_rcv) + String(",") + String((float(mqtt_pkt_rcv)/mqtt_pkt_sent) * 100);
             char perf_eval[pe.length()+1];
-            data.toCharArray(perf_eval, pe.length()+1);
+            pe.toCharArray(perf_eval, pe.length()+1);
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
+
+            Serial.print("Performance evaluation end. Results: ");
+            Serial.println(pe);
 
             // Performance evaluation completed, reset all pe variables
             PERFORMANCE_EVAL = 0;
@@ -206,8 +212,7 @@ int computeAQI(float gas)
     int AQI = -1;
 
     // Average window shifting
-    int i = 0;
-    for (i = 1; i < 4; i++)
+    for (int i = 4; i >= 1; i--)
     {
         last_gas[i] = last_gas[i - 1];
     }
@@ -282,6 +287,7 @@ void get_conf_eeprom()
   // Empty EEPROM, initialize with default values
   if(EEPROM.read(0) == 255)
   {
+    Serial.println("Empty EEPROM, initialize with default values");
     EEPROM.put(0, proto);
     
     p.sample_frequency = SAMPLE_FREQUENCY;
@@ -297,5 +303,10 @@ void get_conf_eeprom()
     SAMPLE_FREQUENCY = p.sample_frequency;
     MIN_GAS_VALUE = p.min_gas_value;
     MAX_GAS_VALUE = p.max_gas_value;
+    Serial.println("Got conf from EEPROM:");
+    Serial.print("SAMPLE_FREQUENCY: "); Serial.println(SAMPLE_FREQUENCY);
+    Serial.print("MIN_GAS_VALUE: "); Serial.println(MIN_GAS_VALUE);
+    Serial.print("MAX_GAS_VALUE: "); Serial.println(MAX_GAS_VALUE);
+    Serial.print("PROTOCOL: "); Serial.println(PROTOCOL);
   }
 }

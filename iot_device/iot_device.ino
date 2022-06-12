@@ -69,7 +69,7 @@ void loop()
 {
   unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= SAMPLE_FREQUENCY)
+  if (currentMillis - previousMillis >= SAMPLE_FREQUENCY * 1000)
   {
     
 /*
@@ -98,8 +98,9 @@ void loop()
     // Send data to data-microservice
     send_data(data);
   
-    coap.loop();
+    
   }
+  coap.loop();
 /*
  *
  *   Configuration task functions
@@ -109,4 +110,5 @@ void loop()
   {
     reconnect();
   }
+  mqtt_client.loop();
 }

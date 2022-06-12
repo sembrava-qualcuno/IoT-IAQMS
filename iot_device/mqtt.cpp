@@ -1,34 +1,53 @@
 #include "mqtt.h"
+#include "StringTokenizer.h"
 
 // Callback used in case of configuration messages received on the topic
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
+    payload[length] = '\0';
+    String topicString = String(topic);
+    String payloadString = String((char*)payload);
+  
+    Serial.print("Message arrived - topic [");
+    Serial.print(topicString);
+    Serial.println("] ");
+    Serial.print("payload: [");
+    Serial.print(payloadString);
+    Serial.println("]");
 
-    if (strcmp(topic, PARAMETERS_TOPIC))
+    if(topicString == PARAMETERS_TOPIC)
     {
         Parameters p;
-        char *token = strtok((char *) payload, ",");
-        if (!strcmp(token, " "))
-            SAMPLE_FREQUENCY = atoi(token);
+        StringTokenizer tokens(payloadString, ",");
 
-        token = strtok(NULL, ",");
-        if (!strcmp(token, " "))
-            MIN_GAS_VALUE = atoi(token);
-		
-        token = strtok(NULL, ",");
-        if (!strcmp(token, " "))
-            MAX_GAS_VALUE = atoi(token);
+        String token = tokens.nextToken();
+        if(token != " ") 
+            SAMPLE_FREQUENCY = token.toInt();
+        token = tokens.nextToken();
+        if(token != " ") 
+            MIN_GAS_VALUE = token.toInt();
+        token = tokens.nextToken();
+        if(token != " ") 
+            MAX_GAS_VALUE = token.toInt();
+
+        p.sample_frequency = SAMPLE_FREQUENCY;
+        p.min_gas_value = MIN_GAS_VALUE;
+        p.max_gas_value = MAX_GAS_VALUE;
+        EEPROM.put(sizeof(int), p);
     }
-    else if (strcmp(topic, PROTOCOL_TOPIC))
-      PROTOCOL = atoi((char *) payload);
-      
-    else if (strcmp(topic, PERFORMANCE_READ_TOPIC))
-      PERFORMANCE_EVAL = atoi((char *) payload);
-      
-    else if (strcmp(topic, WRITE_TOPIC))
+    else if(topicString == PROTOCOL_TOPIC)
+    {
+        Serial.println("Switch protocol");
+        PROTOCOL = atoi((char *) payload);
+        int protocol = PROTOCOL;
+        EEPROM.put(0, protocol);
+    }
+    else if (topicString == PERFORMANCE_READ_TOPIC)
+    {
+        Serial.println("Start performance evaluation");
+        PERFORMANCE_EVAL = atoi((char *) payload);
+    }
+    else if (topicString == WRITE_TOPIC)
     {
       // Get packet RTT and update received packet count
       long pkt_RTT = millis() - mqtt_pkt_time;
@@ -38,8 +57,8 @@ void callback(char *topic, byte *payload, unsigned int length)
       Serial.print("Packet RTT: "); Serial.println(pkt_RTT);
   
       // Calculate average packets delay and PDR
-      Serial.print("Average MQTT packets Delay: "); Serial.println(mqtt_pkt_delay_tot/mqtt_pkt_rcv);
-      Serial.print("MQTT Packet Delivery Ratio so far: "); Serial.print((mqtt_pkt_sent/mqtt_pkt_rcv) * 100); Serial.println("%");
+      Serial.print("Average MQTT packets Delay: "); Serial.println(float(mqtt_pkt_delay_tot)/mqtt_pkt_rcv);
+      Serial.print("MQTT Packet Delivery Ratio so far: "); Serial.print((float(mqtt_pkt_rcv)/mqtt_pkt_sent) * 100); Serial.println("%");
     }
 }
 

@@ -23,8 +23,8 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port)
     // Calculate average packets delay and PDR
     if(PERFORMANCE_EVAL != 0)
     {
-      Serial.print("Average COAP packets Delay: "); Serial.println(coap_pkt_delay_tot/coap_pkt_rcv);
-      Serial.print("COAP Packet Delivery Ratio so far: "); Serial.print((coap_pkt_sent/coap_pkt_rcv) * 100); Serial.println("%");
+      Serial.print("Average COAP packets Delay: "); Serial.println(float(coap_pkt_delay_tot)/coap_pkt_rcv);
+      Serial.print("COAP Packet Delivery Ratio so far: "); Serial.print((float(coap_pkt_rcv)/coap_pkt_sent) * 100); Serial.println("%");
     }
 }
 
