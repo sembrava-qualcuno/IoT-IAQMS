@@ -52,7 +52,7 @@ else:
 if "DATA_FRESHNESS" in os.environ:
     data_freshness = os.environ["DATA_FRESHNESS"]
 else:
-    data_freshness = "-30d"
+    data_freshness = "-1d"
 
 print("Attempting to connect to: %s\nOrg: %s\nBucket: %s" %
       (influx_url, org, read_bucket))
@@ -98,6 +98,7 @@ def get_data(sensor):
     query = 'from(bucket:"{}")' \
         ' |> range(start:{}, stop: now())'\
         ' |> filter(fn: (r) => r.device_id == "{}")' \
+        ' |> filter(fn: (r) => r._measurement == "IoT-Device")'\
         ' |> filter(fn: (r) => r._field == "{}")'.format(read_bucket, data_freshness, device_id, sensor)
 
     result = influx_client.query_api().query(org=org, query=query)
@@ -112,7 +113,7 @@ def get_data(sensor):
     print()
 
     df = pd.DataFrame(raw, columns=['y','ds'], index=None)
-    df['ds'] = df['ds'].values.astype('<M8[D]')
+    df['ds'] = df['ds'].values.astype('<M8[s]')
 
     print(df)
 
