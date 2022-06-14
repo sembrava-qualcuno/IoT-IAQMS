@@ -33,8 +33,8 @@ void setup_MQ2(MQUnifiedsensor *MQ2)
 {
     // Set math model to calculate the PPM concentration and the value of constants
     MQ2->setRegressionMethod(1); //_PPM =  a*ratio^b
-    MQ2->setA(36974);
-    MQ2->setB(-3.109); // Configure the equation to to calculate H2 concentration
+    MQ2->setA(658.71);
+    MQ2->setB(-2.168); // Configure the equation to to calculate H2 concentration
 
     /*
         Exponential regression:
@@ -145,6 +145,7 @@ extern void check_conf_updates(volatile int *sample_frequency, volatile int *min
 
         // Save new conf on EEPROM
         EEPROM.put(0, proto);
+        EEPROM.commit();
     }
     
     if (xQueueReceive(parameter_queue, &parameters, (TickType_t)0) == pdTRUE)
@@ -161,6 +162,7 @@ extern void check_conf_updates(volatile int *sample_frequency, volatile int *min
          parameters.min_gas_value = *min_gas_value;;
          parameters.max_gas_value = *max_gas_value;
          EEPROM.put(sizeof(int), parameters);
+         EEPROM.commit();
     }
 
     if (xQueueReceive(performance_queue, &nPackets, (TickType_t)0) == pdTRUE)
@@ -183,9 +185,10 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
             // Send the report to the MQTT broker
             String pe = String(coap_pkt_delay_tot/coap_pkt_rcv) + String(",") + String((coap_pkt_sent/coap_pkt_rcv) * 100);
             char perf_eval[pe.length()+1];
-            data.toCharArray(perf_eval, pe.length()+1);
+            pe.toCharArray(perf_eval, pe.length()+1);
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
-
+            Serial.print("Performance evaluation end. Results: ");
+            Serial.println(pe);
             // Performance evaluation completed, reset all pe variables
             *performance_nPackets = 0;
             performance_eval = false;
@@ -207,9 +210,10 @@ void send_data(String data, int protocol, volatile int *performance_nPackets)
             // Send the report to the MQTT broker
             String pe = String(mqtt_pkt_delay_tot/mqtt_pkt_rcv) + String(",") + String((mqtt_pkt_sent/mqtt_pkt_rcv) * 100);
             char perf_eval[pe.length()+1];
-            data.toCharArray(perf_eval, pe.length()+1);
+            pe.toCharArray(perf_eval, pe.length()+1);
             mqtt_client.publish(PERFORMANCE_WRITE_TOPIC, perf_eval);
-
+            Serial.print("Performance evaluation end. Results: ");
+            Serial.println(pe);
             // Performance evaluation completed, reset all pe variables
             *performance_nPackets = 0;
             performance_eval = false;
@@ -239,8 +243,7 @@ int computeAQI(float gas, int min_gas_value, int max_gas_value)
     int AQI = -1;
 
     // Average window shifting
-    int i = 0;
-    for (i = 1; i < 4; i++)
+    for (int i = 4; i >= 1; i--)
     {
         last_gas[i] = last_gas[i - 1];
     }
@@ -315,12 +318,14 @@ void get_conf_eeprom(volatile int *protocol, volatile int *sample_frequency, vol
   // Empty EEPROM, initialize with default values
   if(EEPROM.read(0) == 255)
   {
+    Serial.println("Empty EEPROM, initialize with default values");
     EEPROM.put(0, proto);
     
     p.sample_frequency = *sample_frequency;
     p.min_gas_value = *min_gas_value;
     p.max_gas_value = *max_gas_value;
     EEPROM.put(sizeof(int), p);
+    EEPROM.commit();
   }
   else
   {
@@ -330,5 +335,10 @@ void get_conf_eeprom(volatile int *protocol, volatile int *sample_frequency, vol
     *sample_frequency = p.sample_frequency;
     *min_gas_value = p.min_gas_value;
     *max_gas_value = p.max_gas_value;
+    Serial.println("Got conf from EEPROM:");
+    Serial.print("SAMPLE_FREQUENCY: "); Serial.println(*sample_frequency);
+    Serial.print("MIN_GAS_VALUE: "); Serial.println(*min_gas_value);
+    Serial.print("MAX_GAS_VALUE: "); Serial.println(*max_gas_value);
+    Serial.print("PROTOCOL: "); Serial.println(*protocol);
   }
 }
