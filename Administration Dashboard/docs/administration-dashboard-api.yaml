@@ -1,0 +1,136 @@
+openapi: 3.0.1
+info:
+  title: IoT-IAQMS
+  description: ''
+  contact:
+    name: 'IoT-IAQMS'
+    url: https://github.com/sembrava-qualcuno/IoT-IAQMS
+  version: 1.0.0
+servers:
+  - url: localhost:8080
+tags:
+  - name: Device
+paths:
+  /device:
+    post:
+      tags:
+        - Device
+      summary: Add a new device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+            example:
+              deviceId: 1
+        required: true
+      responses:
+          '200':
+            description: Device added
+          '400':
+            description: Invalid deviceId
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ApiError'
+                example:
+                  code: 1
+                  message: "The device must be a positive integer"
+          '403':
+            description: The device already exists
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ApiError'
+                example:
+                  code: 2
+                  message: "The device already exists"
+                  
+      x-codegen-request-body-name: body
+  /devices:
+    get:
+      tags:
+        - Device
+      summary: Get all devices
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Device'
+                example:
+                  - deviceId: 1
+                  - deviceId: 2
+  /devices/{deviceId}:
+    get:
+      tags:
+        - Device
+      summary: Get a device
+      parameters:
+        - in: path
+          name: deviceId
+          required: true
+          schema:
+            type: integer
+          description: The device id
+        
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '400':
+            description: Invalid deviceId
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ApiError'
+                example:
+                  code: 1
+                  message: "The device must be a positive integer"
+        '404':
+          description: The device not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                code: 3
+                message: "The device not exists"
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    Device:
+      type: object
+      required:
+        - deviceId
+      properties:
+        deviceId:
+          type: integer
+          example: 1
+        GPS:
+          type: string
+          example: "44.494887,11.3426163"
+        link:
+          type: string
+          example: "http://localhost:3000/d/mdkPyy97k/device-1"
+            
+          
+    ApiError:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 1
+        message:
+          type: string
+          example: Error message

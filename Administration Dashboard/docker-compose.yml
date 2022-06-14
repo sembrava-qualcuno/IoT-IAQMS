@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  administration-dashboard:
+    container_name: administration-dashboard
+    image: administration-dashboard
+    networks:
+      - DataProxy-network
+    ports:
+      - 3002:3002
+      
+networks:
+  DataProxy-network:
+    external: true
+      

@@ -1,0 +1,32 @@
+{
+  "name": "configuration-microservice",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sembrava-qualcuno/IoT-IAQMS.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sembrava-qualcuno/IoT-IAQMS/issues"
+  },
+  "homepage": "https://github.com/sembrava-qualcuno/IoT-IAQMS#readme",
+  "description": "Configuration microservice",
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.26.0",
+    "@influxdata/influxdb-client-apis": "^1.26.0",
+    "axios": "^0.27.2",
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "mqtt": "^4.3.7"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.42"
+  }
+}
