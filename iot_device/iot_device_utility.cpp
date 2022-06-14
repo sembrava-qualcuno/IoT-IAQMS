@@ -33,8 +33,8 @@ void setup_MQ2(MQUnifiedsensor *MQ2)
 {
     // Set math model to calculate the PPM concentration and the value of constants
     MQ2->setRegressionMethod(1); //_PPM =  a*ratio^b
-    MQ2->setA(36974);
-    MQ2->setB(-3.109); // Configure the equation to to calculate H2 concentration
+    MQ2->setA(658.71);
+    MQ2->setB(-2.168); // Configure the equation to to calculate H2 concentration
 
     /*
         Exponential regression:
@@ -294,6 +294,7 @@ void get_conf_eeprom()
     p.min_gas_value = MIN_GAS_VALUE;
     p.max_gas_value = MAX_GAS_VALUE;
     EEPROM.put(sizeof(int), p);
+    EEPROM.commit();
   }
   else
   {

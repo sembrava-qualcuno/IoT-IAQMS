@@ -34,6 +34,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         p.min_gas_value = MIN_GAS_VALUE;
         p.max_gas_value = MAX_GAS_VALUE;
         EEPROM.put(sizeof(int), p);
+        EEPROM.commit();
     }
     else if(topicString == PROTOCOL_TOPIC)
     {
@@ -41,6 +42,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         PROTOCOL = atoi((char *) payload);
         int protocol = PROTOCOL;
         EEPROM.put(0, protocol);
+        EEPROM.commit();
     }
     else if (topicString == PERFORMANCE_READ_TOPIC)
     {
