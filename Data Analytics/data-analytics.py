@@ -32,7 +32,7 @@ else:
 if "INFLUX_URL" in os.environ:
     influx_url = os.environ["INFLUX_URL"]
 else:
-    influx_url = "http://influxdb:8086"
+    influx_url = "http://localhost:8086"
 
 if "FORECASTING_FREQUENCY" in os.environ:
     forecasting_frequency = os.environ["FORECASTING_FREQUENCY"]
@@ -40,7 +40,7 @@ else:
     forecasting_frequency = "1min"
 
 if "FORECASTING_PERIODS" in os.environ:
-    forecasting_periods = os.environ["FORECASTING_PERIODS"]
+    forecasting_periods = int(os.environ["FORECASTING_PERIODS"])
 else:
     forecasting_periods = 1
 
